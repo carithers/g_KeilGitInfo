@@ -1,0 +1,108 @@
+import os
+import subprocess
+import datetime
+from pathlib import Path
+
+def generate_git_header(repo_path=".", output_filename="git_info.h"):
+    """
+    获取 Git 仓库信息并生成 C/C++ 头文件
+    """
+    try:
+        # 1. 获取 Git 最新提交信息：完整哈希 | 提交时间(ISO 8601格式) | 提交人
+        log_cmd = ["git", "-C", str(repo_path), "log", "-1", "--format=%H|%ai|%an"]
+        log_result = subprocess.run(log_cmd, capture_output=True, text=True, check=True).stdout.strip()
+        
+        full_hash, commit_time, author = log_result.split('|')
+        
+        # 2. 截取前 8 位，并转换成 0x 格式
+        short_hash = full_hash[:8]
+        hex_hash = f"0x{short_hash}"
+        
+        # 3. 获取工作区状态 (git status --porcelain 没有任何输出即代表干净)
+        status_cmd = ["git", "-C", str(repo_path), "status", "--porcelain"]
+        status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True).stdout.strip()
+        is_clean = (status_result == "")
+        status_val = 1 if is_clean else 0  # 1 代表干净，0 代表有未提交的文件
+        status_text = "Clean" if is_clean else "Dirty (Uncommitted changes)"
+        
+        # 4. 获取当前编译人名称 (读取本地 git 配置文件中的 user.name)
+        try:
+            builder_cmd = ["git", "-C", str(repo_path), "config", "user.name"]
+            build_author = subprocess.run(builder_cmd, capture_output=True, text=True, check=True).stdout.strip()
+            if not build_author:
+                build_author = "Unknown_User"
+        except subprocess.CalledProcessError:
+            # 如果本地未配置 user.name，提供一个默认回退值
+            build_author = "Unknown_User"
+            
+        # 5. 获取当前执行的时间
+        current_execution_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 6. 构造头文件内容 (注意这里的 struct 使用了双大括号 {{ 和 }})
+        header_content = f"""/**
+ * 自动生成的 Git 版本信息头文件
+ * 生成时间: {current_execution_time}
+ */
+
+#ifndef GIT_INFO_H
+#define GIT_INFO_H
+
+#include <stdint.h>
+
+// Git 提交哈希前8位（数值型 0x 格式，方便代码中进行版本数字对比）
+#define GIT_COMMIT_HASH_HEX     {hex_hash}
+
+// Git 提交哈希（字符串型）
+#define GIT_COMMIT_HASH_STR     "{short_hash}"
+
+// 最新提交时间
+#define GIT_COMMIT_TIME         "{commit_time}"
+
+// 最新提交人
+#define GIT_COMMIT_AUTHOR       "{author}"
+
+// 工作区状态：1 为干净（全部提交），0 为有未提交的修改
+#define GIT_IS_CLEAN            {status_val}
+#define GIT_STATUS_DESC         "{status_text}"
+
+// 编译人 (当前执行编译的 Git 账户)
+#define BUILD_AUTHOR            "{build_author}"
+
+// 固件编译/执行时间
+#define BUILD_EXECUTION_TIME    "{current_execution_time}"
+
+typedef struct {{
+    uint32_t hash;
+    uint8_t commit_time[28];
+    uint8_t commit_author[16];
+    uint8_t is_clean;
+    uint8_t build_author[16];
+    uint8_t build_time[24];
+}} git_info_t;
+
+extern const git_info_t git_info;
+
+#endif // GIT_INFO_H
+"""
+        
+        # 7. 写入到文件
+        with open(output_filename, "w", encoding="utf-8") as f:
+            f.write(header_content)
+            
+        print(f"成功生成头文件: {os.path.abspath(output_filename)}")
+        
+    except subprocess.CalledProcessError:
+        print(f"错误：执行失败。请确认路径 '{repo_path}' 是否是一个有效的 Git 仓库。")
+    except Exception as e:
+        print(f"发生未知错误: {e}")
+
+# 1. 获取当前 Python 脚本所在的绝对目录
+script_dir = Path(__file__).resolve().parent
+
+# 2. 将输出文件名绑定到这个目录下
+target_output_file = script_dir / "git_info.h"
+
+# 3. 如果需要的话，也可以让 repo_path 指向脚本的父目录等，
+#    这里默认 "." 依然是指当前执行命令时的路径所在的 Git 仓库。
+#    如果你也想强制获取脚本所在目录的 git 信息，可以传入 repo_path=script_dir
+generate_git_header(repo_path=".", output_filename=target_output_file)

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<package schemaVersion="1.0.0"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
+  <vendor>Coman</vendor>
+  <name>GitInfo</name>
+  <description>Program contains git information</description>
+  <url>https://github.com/carithers/g_KeilGitInfo</url>
+  <supportContact>carithers@163.com</supportContact>
+  <!-- optional license file -->
+  <!-- 
+  <license>
+  </license>
+  -->
+
+  <releases>
+	<release version="1.0.0" date="2026-06-02">
+      Program contains git information
+    </release>
+  </releases>
+  
+  <taxonomy>
+	<description Cclass="GitInfo" doc="https://github.com/carithers/g_KeilGitInfo">Open source link</description>
+  </taxonomy>
+
+  <keywords>
+    <!-- keywords for indexing -->
+    <keyword>Git</keyword>
+  </keywords>
+
+  <!-- apis section (optional - for Application Programming Interface descriptions) -->
+  <apis>
+	<api Cclass="GitInfo" Cgroup="Git Info" Capiversion="1.0.0" exclusive="1">
+      <description>Program contains git information</description>
+      <files>
+        <file category="doc" name="https://github.com/carithers/g_KeilGitInfo/tree/master"/>
+      </files>
+    </api>
+  </apis>
+
+
+  <!-- boards section (mandatory for Board Support Packs) -->
+  <!-- 
+  <boards>
+  </boards>
+  -->
+
+  <!-- devices section (mandatory for Device Family Packs) -->
+  <!--
+  <devices>
+  </devices>
+  -->
+
+  <!-- examples section (optional for all Software Packs)-->
+  <!--
+  <examples>
+  </examples>
+  -->
+
+  <!-- conditions section (optional for all Software Packs)-->
+  <!--
+  <conditions>
+  </conditions>
+  -->
+
+  <!-- component section (optional for all Software Packs)-->
+
+  <components>
+    <component Cclass="GitInfo" Cgroup="Git Info" Csub="Git information" Cversion="1.0.0">
+      <description>Program contains git information</description>
+      <files>
+        <file category="source" name="Source\git_info.c" version="1.0.0"/>
+        <file category="header" name="Include\git_info.h" attr="config" version="1.0.0"/>
+        <file category="other" name="Scripts\git_info" attr="config" version="1.0.0"/>
+      </files>
+    </component>
+	
+  </components>
+
+
+  <!-- optional taxonomy section for defining new component Class and Group names -->
+  <!--
+  <taxonomy>
+  </taxonomy>
+  -->
+
+</package>
