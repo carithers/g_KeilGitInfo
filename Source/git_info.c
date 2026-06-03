@@ -14,15 +14,15 @@ const git_info_t git_info __attribute__((used)) = {
 
 #else
 
-#error "
-1. Please ensure that git and Python are installed.
-2. Please ensure that GitInfo(https://github.com/carithers/g_KeilGitInfo/release) is installed.
-3. Please ensure that the project is tracked with git.
-4. Please ensure that in 
-    Keil -> Options for Target (magic wand) -> User -> Before Build/Rebuild, 
-        [  py RTE/GitInfo/git_info  ] has been added (and checked/ticked).
-{ doc: https://github.com/carithers/g_KeilGitInfo }
-"
+#error " GitInfo configuration error! "
+/* 1. Please ensure that git and Python are installed.
+ * 2. Please ensure that GitInfo(https://github.com/carithers/g_KeilGitInfo/release) is installed.
+ * 3. Please ensure that the project is tracked with git.
+ * 4. Please ensure that in
+ *     Keil -> Options for Target (magic wand) -> User -> Before Build/Rebuild,
+ *         [  py RTE/GitInfo/git_info  ] has been added (and checked/ticked).
+ * { doc: https://github.com/carithers/g_KeilGitInfo }
+ */
 
 #endif
 

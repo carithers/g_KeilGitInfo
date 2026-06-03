@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import subprocess
 import datetime
@@ -31,9 +32,11 @@ def generate_git_header(repo_path=".", output_filename="git_info.h"):
             build_author = subprocess.run(builder_cmd, capture_output=True, text=True, check=True).stdout.strip()
             if not build_author:
                 build_author = "Unknown_User"
+                print("错误：执行失败。请确认电脑系统是否正确配置git用户名称。")
         except subprocess.CalledProcessError:
             # 如果本地未配置 user.name，提供一个默认回退值
             build_author = "Unknown_User"
+            print("错误：执行失败。请确认电脑系统是否正确配置git用户名称。")
             
         # 5. 获取当前执行的时间
         current_execution_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -42,7 +45,6 @@ def generate_git_header(repo_path=".", output_filename="git_info.h"):
         header_content = f"""/**
  * 自动生成的 Git 版本信息头文件
  * 生成时间: {current_execution_time}
- * Source: https://github.com/carithers/g_KeilGitInfo
  */
 
 #ifndef GIT_INFO_H
@@ -93,7 +95,7 @@ extern const git_info_t git_info;
         print(f"成功生成头文件: {os.path.abspath(output_filename)}")
         
     except subprocess.CalledProcessError:
-        print(f"错误：执行失败。请确认路径 '{repo_path}' 是否是一个有效的 Git 仓库。")
+        print("错误：执行失败。请确认当前工程是否是正确使用git追踪。")
     except Exception as e:
         print(f"发生未知错误: {e}")
 
