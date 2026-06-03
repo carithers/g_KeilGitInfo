@@ -42,6 +42,7 @@ def generate_git_header(repo_path=".", output_filename="git_info.h"):
         header_content = f"""/**
  * 自动生成的 Git 版本信息头文件
  * 生成时间: {current_execution_time}
+ * Source: https://github.com/carithers/g_KeilGitInfo
  */
 
 #ifndef GIT_INFO_H
