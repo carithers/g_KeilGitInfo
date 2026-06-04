@@ -24,7 +24,7 @@ def generate_git_header(repo_path=".", output_filename="git_info.h"):
         status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True).stdout.strip()
         is_clean = (status_result == "")
         status_val = 1 if is_clean else 0  # 1 代表干净，0 代表有未提交的文件
-        status_text = "Clean" if is_clean else "Dirty (Uncommitted changes)"
+        status_text = "Clean" if is_clean else "Dirty"
         
         # 4. 获取当前编译人名称 (读取本地 git 配置文件中的 user.name)
         try:
@@ -92,7 +92,7 @@ extern const git_info_t git_info;
         with open(output_filename, "w", encoding="utf-8") as f:
             f.write(header_content)
             
-        print(f"成功生成头文件: {os.path.abspath(output_filename)}")
+        print(f"{os.path.abspath(output_filename)}")
         
     except subprocess.CalledProcessError:
         print("错误：执行失败。请确认当前工程是否是正确使用git追踪。")

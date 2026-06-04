@@ -3,6 +3,10 @@
 
 #if GIT_COMMIT_HASH_HEX
 
+#if GIT_IS_CLEAN != 1
+#warning "git:有变更文件未提交!"
+#endif
+
 const git_info_t git_info __attribute__((used)) = {
     .hash = GIT_COMMIT_HASH_HEX,
     .commit_time = GIT_COMMIT_TIME,
