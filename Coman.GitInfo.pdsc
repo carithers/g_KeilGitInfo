@@ -70,8 +70,7 @@
       <description>Program contains git information</description>
       <files>
         <file category="source" name="Source\git_info.c" version="1.0.0"/>
-        <file category="header" name="Include\git_info.h" attr="config" version="1.0.0"/>
-        <file category="other" name="Scripts\git_info" attr="config" version="1.0.0"/>
+        <file category="header" name="Include\git_info" attr="config" version="1.0.0"/>
       </files>
     </component>
 	

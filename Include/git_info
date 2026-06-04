@@ -1,0 +1,153 @@
+#if 0 // 2>nul
+@echo off
+:: 由于DGS去掉文件后缀.h
+setlocal enabledelayedexpansion
+chcp 65001 >nul
+
+:: 1. 获取自身的绝对路径
+set "SELF_PATH=%~f0"
+set "TEMP_PATH=%~dp0temp_git_info.tmp"
+
+:: 2. 获取 Git 信息
+set "FULL_HASH="
+for /f "tokens=1,2,3 delims=|" %%a in ('git -C "%~dp0." log -1 "--format=%%H|%%ai|%%an" 2^>nul') do (
+    set "FULL_HASH=%%a"
+    set "COMMIT_TIME=%%b"
+    set "COMMIT_AUTHOR=%%c"
+)
+
+if "!FULL_HASH!"=="" (
+    echo [Git Info] 未检测到 Git 仓库
+    set "SHORT_HASH=00000000"
+    set "HEX_HASH=0x00000000"
+    set "COMMIT_TIME=Unknown"
+    set "COMMIT_AUTHOR=Unknown"
+    set "IS_CLEAN_VAL=0"
+    set "STATUS_TEXT=No Git"
+    set "BUILD_AUTHOR=Unknown_User"
+) else (
+    :: 如果成功获取到了 Git 信息，则继续处理其他参数
+    set "SHORT_HASH=!FULL_HASH:~0,8!"
+    set "HEX_HASH=0x!SHORT_HASH!"
+
+    set "IS_CLEAN_VAL=1"
+    set "STATUS_TEXT=Clean"
+    for /f "delims=" %%a in ('git -C "%~dp0." status --porcelain 2^>nul') do (
+        set "IS_CLEAN_VAL=0"
+        set "STATUS_TEXT=Dirty"
+    )
+
+    set "BUILD_AUTHOR="
+    for /f "delims=" %%a in ('git -C "%~dp0." config user.name 2^>nul') do set "BUILD_AUTHOR=%%a"
+    if "!BUILD_AUTHOR!"=="" set "BUILD_AUTHOR=Unknown_User"
+)
+
+for /f "delims=" %%a in ('powershell -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'" 2^>nul') do set "CURRENT_TIME=%%a"
+
+:: 3. 文件自我切割
+powershell -Command "$lines = [System.IO.File]::ReadAllLines($env:SELF_PATH); $idx = [array]::IndexOf($lines, '::---BAT_END_FLG---'); if ($idx -ge 0) { [System.IO.File]::WriteAllLines($env:TEMP_PATH, $lines[0..$idx]) }"
+
+:: 4. 更新 C 语言代码
+(
+echo #endif
+echo.
+echo /**
+echo  * 自动生成的 Git 版本信息头文件
+echo  * 生成时间: !CURRENT_TIME!
+echo  */
+echo.
+echo #ifndef GIT_INFO_H
+echo #define GIT_INFO_H
+echo.
+echo #include ^<stdint.h^>
+echo.
+echo // Git 提交哈希前8位
+echo #define GIT_COMMIT_HASH_HEX     !HEX_HASH!
+echo.
+echo // Git 提交哈希
+echo #define GIT_COMMIT_HASH_STR     "!SHORT_HASH!"
+echo.
+echo // 工作区状态：1 为干净（全部提交），0 为有未提交的修改
+echo #define GIT_IS_CLEAN            !IS_CLEAN_VAL!
+echo #define GIT_STATUS_DESC         "!STATUS_TEXT!"
+echo.
+echo // 最新提交人
+echo #define GIT_COMMIT_AUTHOR       "!COMMIT_AUTHOR!"
+echo.
+echo // 最新提交时间
+echo #define GIT_COMMIT_TIME         "!COMMIT_TIME!"
+echo.
+echo // 编译人
+echo #define BUILD_AUTHOR            "!BUILD_AUTHOR!"
+echo.
+echo // 固件编译/执行时间
+echo #define BUILD_EXECUTION_TIME    "!CURRENT_TIME!"
+echo.
+echo typedef struct {
+echo     uint32_t hash;
+echo     uint8_t is_clean;
+echo     uint8_t commit_author[16];
+echo     uint8_t commit_time[28];
+echo     uint8_t build_author[16];
+echo     uint8_t build_time[24];
+echo } git_info_t;
+echo.
+echo extern const git_info_t git_info;
+echo.
+echo #endif // GIT_INFO_H
+echo.
+) >> "%TEMP_PATH%"
+
+:: 5. 移花接木，自我更新
+move /y "%TEMP_PATH%" "%SELF_PATH%" >nul
+
+echo [Git Info] 更新成功！当前版本: !SHORT_HASH!
+exit /b 0
+::---BAT_END_FLG---
+#endif
+
+/**
+ * 自动生成的 Git 版本信息头文件
+ * 生成时间: 2026-06-04 17:38:04
+ */
+
+#ifndef GIT_INFO_H
+#define GIT_INFO_H
+
+#include <stdint.h>
+
+// Git 提交哈希前8位
+#define GIT_COMMIT_HASH_HEX     0x00000000
+
+// Git 提交哈希
+#define GIT_COMMIT_HASH_STR     "00000000"
+
+// 工作区状态：1 为干净（全部提交），0 为有未提交的修改
+#define GIT_IS_CLEAN            0
+#define GIT_STATUS_DESC         "No Git"
+
+// 最新提交人
+#define GIT_COMMIT_AUTHOR       "Unknown"
+
+// 最新提交时间
+#define GIT_COMMIT_TIME         "Unknown"
+
+// 编译人
+#define BUILD_AUTHOR            "Unknown_User"
+
+// 固件编译/执行时间
+#define BUILD_EXECUTION_TIME    "2026-06-04 17:38:04"
+
+typedef struct {
+    uint32_t hash;
+    uint8_t is_clean;
+    uint8_t commit_author[16];
+    uint8_t commit_time[28];
+    uint8_t build_author[16];
+    uint8_t build_time[24];
+} git_info_t;
+
+extern const git_info_t git_info;
+
+#endif // GIT_INFO_H
+
