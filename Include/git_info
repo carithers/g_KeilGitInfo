@@ -56,6 +56,9 @@ echo  * Auto-generated Git version info header file
 echo  * Generated at: !CURRENT_TIME!
 echo  */
 echo.
+echo // git ignore: git update-index --skip-worktree File
+echo // git ignore cancel: git update-index --no-skip-worktree File
+echo.
 echo #ifndef GIT_INFO_H
 echo #define GIT_INFO_H
 echo.
