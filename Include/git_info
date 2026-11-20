@@ -94,11 +94,12 @@ echo } git_info_t;
 echo.
 echo extern const git_info_t git_info;
 echo.
-echo #if GIT_INFO_INIT
-echo #if GIT_COMMIT_HASH_HEX ^> 0
 echo #if GIT_IS_CLEAN ^^!= 1
 echo #warning "git: Uncommitted changes^!"
 echo #endif
+echo.
+echo #ifdef GIT_INFO_INIT
+echo #if GIT_COMMIT_HASH_HEX ^> 0
 echo const git_info_t git_info __attribute__((used^)^) = {
 echo     .hash = GIT_COMMIT_HASH_HEX,
 echo     .is_clean = GIT_IS_CLEAN,
@@ -179,11 +180,12 @@ typedef struct {
 
 extern const git_info_t git_info;
 
-#if GIT_INFO_INIT
-#if GIT_COMMIT_HASH_HEX > 0
 #if GIT_IS_CLEAN != 1
 #warning "git: Uncommitted changes!"
 #endif
+
+#if GIT_INFO_INIT
+#if GIT_COMMIT_HASH_HEX > 0
 const git_info_t git_info __attribute__((used)) = {
     .hash = GIT_COMMIT_HASH_HEX,
     .is_clean = GIT_IS_CLEAN,
