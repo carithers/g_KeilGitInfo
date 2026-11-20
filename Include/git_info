@@ -1,14 +1,14 @@
 #if 0 // 2>nul
 @echo off
-:: 由于DGS去掉文件后缀.h
+:: Removed .h file extension due to DGS
 setlocal enabledelayedexpansion
 chcp 65001 >nul
 
-:: 1. 获取自身的绝对路径
+:: 1. Get absolute path of this script
 set "SELF_PATH=%~f0"
 set "TEMP_PATH=%~dp0temp_git_info.tmp"
 
-:: 2. 获取 Git 信息
+:: 2. Get Git information
 set "FULL_HASH="
 for /f "tokens=1,2,3 delims=|" %%a in ('git -C "%~dp0." log -1 "--format=%%H|%%ai|%%an" 2^>nul') do (
     set "FULL_HASH=%%a"
@@ -17,7 +17,7 @@ for /f "tokens=1,2,3 delims=|" %%a in ('git -C "%~dp0." log -1 "--format=%%H|%%a
 )
 
 if "!FULL_HASH!"=="" (
-    echo [Git Info] 未检测到 Git 仓库
+    echo [Git Info] Git repository not detected
     set "SHORT_HASH=00000000"
     set "HEX_HASH=0x00000000"
     set "COMMIT_TIME=Unknown"
@@ -26,7 +26,7 @@ if "!FULL_HASH!"=="" (
     set "STATUS_TEXT=No Git"
     set "BUILD_AUTHOR=Unknown_User"
 ) else (
-    :: 如果成功获取到了 Git 信息，则继续处理其他参数
+    rem Process remaining parameters if Git info was retrieved successfully
     set "SHORT_HASH=!FULL_HASH:~0,8!"
     set "HEX_HASH=0x!SHORT_HASH!"
 
@@ -44,16 +44,16 @@ if "!FULL_HASH!"=="" (
 
 for /f "delims=" %%a in ('powershell -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'" 2^>nul') do set "CURRENT_TIME=%%a"
 
-:: 3. 文件自我切割
+:: 3. Split script content before the marker
 powershell -Command "$lines = [System.IO.File]::ReadAllLines($env:SELF_PATH); $idx = [array]::IndexOf($lines, '::---BAT_END_FLG---'); if ($idx -ge 0) { [System.IO.File]::WriteAllLines($env:TEMP_PATH, $lines[0..$idx]) }"
 
-:: 4. 更新 C 语言代码
+:: 4. Update C header code
 (
 echo #endif
 echo.
 echo /**
-echo  * 自动生成的 Git 版本信息头文件
-echo  * 生成时间: !CURRENT_TIME!
+echo  * Auto-generated Git version info header file
+echo  * Generated at: !CURRENT_TIME!
 echo  */
 echo.
 echo #ifndef GIT_INFO_H
@@ -61,26 +61,26 @@ echo #define GIT_INFO_H
 echo.
 echo #include ^<stdint.h^>
 echo.
-echo // Git 提交哈希前8位
+echo // First 8 hex digits of Git commit hash
 echo #define GIT_COMMIT_HASH_HEX     !HEX_HASH!
 echo.
-echo // Git 提交哈希
+echo // Git commit hash string
 echo #define GIT_COMMIT_HASH_STR     "!SHORT_HASH!"
 echo.
-echo // 工作区状态：1 为干净（全部提交），0 为有未提交的修改
+echo // Working tree status: 1 = clean, 0 = uncommitted changes
 echo #define GIT_IS_CLEAN            !IS_CLEAN_VAL!
 echo #define GIT_STATUS_DESC         "!STATUS_TEXT!"
 echo.
-echo // 最新提交人
+echo // Latest commit author
 echo #define GIT_COMMIT_AUTHOR       "!COMMIT_AUTHOR!"
 echo.
-echo // 最新提交时间
+echo // Latest commit time
 echo #define GIT_COMMIT_TIME         "!COMMIT_TIME!"
 echo.
-echo // 编译人
+echo // Build author
 echo #define BUILD_AUTHOR            "!BUILD_AUTHOR!"
 echo.
-echo // 固件编译/执行时间
+echo // Firmware build/execution time
 echo #define BUILD_EXECUTION_TIME    "!CURRENT_TIME!"
 echo.
 echo typedef struct {
@@ -127,17 +127,18 @@ echo #endif // GIT_INFO_H
 echo.
 ) >> "%TEMP_PATH%"
 
-:: 5. 移花接木，自我更新
-move /y "%TEMP_PATH%" "%SELF_PATH%" >nul
-
-echo [Git Info] 更新成功！当前版本: !SHORT_HASH!
-exit /b 0
+:: 5. Replace self with updated file
+(
+    move /y "%TEMP_PATH%" "%SELF_PATH%" >nul
+    echo [Git Info] Updated successfully. Current version: !SHORT_HASH!
+    exit /b 0
+)
 ::---BAT_END_FLG---
 #endif
 
 /**
- * 自动生成的 Git 版本信息头文件
- * 生成时间: 2026-06-04 17:38:04
+ * Auto-generated Git version info header file
+ * Generated at: 2026-06-04 17:38:04
  */
 
 #ifndef GIT_INFO_H
@@ -145,26 +146,26 @@ exit /b 0
 
 #include <stdint.h>
 
-// Git 提交哈希前8位
+// First 8 hex digits of Git commit hash
 #define GIT_COMMIT_HASH_HEX     0x00000000
 
-// Git 提交哈希
+// Git commit hash string
 #define GIT_COMMIT_HASH_STR     "00000000"
 
-// 工作区状态：1 为干净（全部提交），0 为有未提交的修改
+// Working tree status: 1 = clean, 0 = uncommitted changes
 #define GIT_IS_CLEAN            0
 #define GIT_STATUS_DESC         "No Git"
 
-// 最新提交人
+// Latest commit author
 #define GIT_COMMIT_AUTHOR       "Unknown"
 
-// 最新提交时间
+// Latest commit time
 #define GIT_COMMIT_TIME         "Unknown"
 
-// 编译人
+// Build author
 #define BUILD_AUTHOR            "Unknown_User"
 
-// 固件编译/执行时间
+// Firmware build/execution time
 #define BUILD_EXECUTION_TIME    "2026-06-04 17:38:04"
 
 typedef struct {
@@ -179,13 +180,10 @@ typedef struct {
 extern const git_info_t git_info;
 
 #if GIT_INFO_INIT
-
 #if GIT_COMMIT_HASH_HEX > 0
-
 #if GIT_IS_CLEAN != 1
 #warning "git: Uncommitted changes!"
 #endif
-
 const git_info_t git_info __attribute__((used)) = {
     .hash = GIT_COMMIT_HASH_HEX,
     .is_clean = GIT_IS_CLEAN,
@@ -194,11 +192,9 @@ const git_info_t git_info __attribute__((used)) = {
     .build_author = BUILD_AUTHOR,
     .build_time = BUILD_EXECUTION_TIME
 };
-
 #else
-
 #error " GitInfo configuration error! "
-/* 1. Please ensure that git and Python are installed.
+/*  1. Please ensure that git and Python are installed.
  * 2. Please ensure that GitInfo(https://github.com/carithers/g_KeilGitInfo/release) is installed.
  * 3. Please ensure that the project is tracked with git.
  * 4. Please ensure that in
@@ -209,9 +205,7 @@ const git_info_t git_info __attribute__((used)) = {
  * 7. git commit -m init
  * { doc: https://github.com/carithers/g_KeilGitInfo }
  */
-
 #endif
 #endif
 
 #endif // GIT_INFO_H
-
