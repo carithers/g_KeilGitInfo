@@ -32,7 +32,7 @@ if "!FULL_HASH!"=="" (
 
     set "IS_CLEAN_VAL=1"
     set "STATUS_TEXT=Clean"
-    for /f "delims=" %%a in ('git -C "%~dp0." status --porcelain 2^>nul') do (
+    for /f "delims=" %%a in ('git -C "%~dp0." status --porcelain -- ":/" ":(exclude)*git_info" ":(exclude)*git_info.bat" 2^>nul') do (
         set "IS_CLEAN_VAL=0"
         set "STATUS_TEXT=Dirty"
     )
